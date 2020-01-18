@@ -1,7 +1,8 @@
 console.log('Index.js is connected!');
 
 $(document).ready(function() {
-	let searchResults;
+	let searchResults = [];
+	let resultsPage = 1;
 
 	// Event listeners
 	$('#searchBtn').on('click', getSearchResults);
@@ -9,6 +10,12 @@ $(document).ready(function() {
 		if (e.keyCode === 13) {
 			getSearchResults();
 		}
+	});
+
+	$('#loadMore').on('click', function() {
+		console.log(resultsPage);
+		getSearchResults();
+		console.log(resultsPage);
 	});
 
 	// API Call to TMDB for search query
@@ -19,9 +26,15 @@ $(document).ready(function() {
 
 		try {
 			const response = await $.ajax(
-				`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${searchQuery}`
+				`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${searchQuery}&page=${resultsPage}`
 			);
-			searchResults = response;
+			response.results.map(result => searchResults.push(result));
+			resultsPage++;
+
+			if (resultsPage > response.total_pages) {
+				$('#loadMore').remove();
+			}
+
 			displaySearchResults(response);
 		} catch (err) {
 			console.log(err);
@@ -29,11 +42,10 @@ $(document).ready(function() {
 	}
 
 	// Update UI for search results
-	function displaySearchResults(response) {
+	function displaySearchResults() {
 		$('#searchResults').empty();
 
-		response.results.map(result => {
-			console.log(result);
+		searchResults.map(result => {
 			$('#searchResults').append(
 				`
         <!-- Movie Entry-->
