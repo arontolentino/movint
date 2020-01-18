@@ -1,8 +1,11 @@
 console.log('Index.js is connected!');
 
 $(document).ready(function() {
+	let searchTerm = '';
+	let searchQuery = '';
 	let searchResults = [];
 	let resultsPage = 1;
+	const API_KEY = '478d3d02be8a73d3dd340c0d5dff612d';
 
 	// Event listeners
 	$('#searchBtn').on('click', getSearchResults);
@@ -14,20 +17,28 @@ $(document).ready(function() {
 
 	$('#loadMore').on('click', function() {
 		console.log(resultsPage);
-		getSearchResults();
+		loadMoreResults();
 		console.log(resultsPage);
 	});
 
 	// API Call to TMDB for search query
 	async function getSearchResults() {
-		let searchTerm = $('#searchTerm').val();
-		let searchQuery = searchTerm.replace(' ', '+');
-		const API_KEY = '478d3d02be8a73d3dd340c0d5dff612d';
+		searchResults = [];
+		resultsPage = 1;
+		searchTerm = $('#searchTerm').val();
+		searchQuery = searchTerm.replace(' ', '+');
+
+		console.log(searchTerm);
+
+		$('#searchResults').empty();
 
 		try {
-			const response = await $.ajax(
-				`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${searchQuery}&page=${resultsPage}`
-			);
+			let apiURL = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${searchQuery}&page=${resultsPage}`;
+
+			console.log(apiURL);
+
+			let response = await $.ajax(apiURL);
+			console.log(response);
 			response.results.map(result => searchResults.push(result));
 			resultsPage++;
 
@@ -35,17 +46,41 @@ $(document).ready(function() {
 				$('#loadMore').remove();
 			}
 
-			displaySearchResults(response);
+			displaySearchResults(response.results);
+		} catch (err) {
+			console.log(err);
+		}
+	}
+
+	async function loadMoreResults() {
+		let searchQuery = searchTerm.replace(' ', '+');
+
+		try {
+			let apiURL = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${searchQuery}&page=${resultsPage}`;
+
+			console.log(apiURL);
+
+			let response = await $.ajax(apiURL);
+			console.log(response);
+
+			displaySearchResults(response.results);
+
+			response.results.map(result => {
+				searchResults.push(result);
+			});
+			resultsPage++;
+
+			if (resultsPage > response.total_pages) {
+				$('#loadMore').remove();
+			}
 		} catch (err) {
 			console.log(err);
 		}
 	}
 
 	// Update UI for search results
-	function displaySearchResults() {
-		$('#searchResults').empty();
-
-		searchResults.map(result => {
+	function displaySearchResults(results) {
+		results.map(result => {
 			$('#searchResults').append(
 				`
         <!-- Movie Entry-->
@@ -60,15 +95,21 @@ $(document).ready(function() {
               </figure>
             </div>
             <div class="card-content">
-              <div class="content">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Phasellus nec iaculis mauris. <a>@bulmaio</a>.
-                <a href="#">#css</a>
-                <a href="#">#responsive</a>
-                <br />
-                <time datetime="2016-1-1">11:09 PM - 1 Jan 2016</time>
+              <div class="content issmall">
+                <h3 class="title is-5">${result.title}</h3>
+                <h4 class="subtitle is-6">${moment(result.release_date).format(
+									'MMMM D, YYYY'
+								)}</h4>
+                <h4 class="subtitle is-6">${`Average Rating: ${result.vote_average}`}</h4>
+                <p class="is-size-6">${`${result.overview.slice(
+									0,
+									130
+								)}...`}</p>
               </div>
             </div>
+            <footer class="card-footer">
+              <a href="#" class="card-footer-item">Learn More</a>
+            </footer>
           </div>
         </div>
         `
