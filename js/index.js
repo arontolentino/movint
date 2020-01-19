@@ -15,6 +15,13 @@ $(document).ready(function() {
 		}
 	});
 
+	$(document).on('click', 'a#learnMore', function(e) {
+		let id = e.target.attributes['data-id'].value;
+		showMovieDetail(id);
+	});
+
+	$('.modal-close').on('click', hideMovieDetail);
+
 	$('#loadMore').on('click', function() {
 		console.log(resultsPage);
 		loadMoreResults();
@@ -78,6 +85,16 @@ $(document).ready(function() {
 		}
 	}
 
+	function showMovieDetail(id) {
+		$('.modal').addClass('is-active');
+		$('.modal-content').append(`<h1>${id}</h1>`);
+	}
+
+	function hideMovieDetail() {
+		$('.modal').removeClass('is-active');
+		$('.modal-content').empty();
+	}
+
 	// Update UI for search results
 	function displaySearchResults(results) {
 		results.map(result => {
@@ -108,7 +125,9 @@ $(document).ready(function() {
               </div>
             </div>
             <footer class="card-footer">
-              <a href="#" class="card-footer-item">Learn More</a>
+              <a class="card-footer-item" id="learnMore" data-id="${
+								result.id
+							}">Learn More</a>
             </footer>
           </div>
         </div>
