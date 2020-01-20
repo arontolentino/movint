@@ -1,5 +1,3 @@
-console.log('Index.js is connected!');
-
 $(document).ready(function() {
 	let searchTerm = '';
 	let searchQuery = '';
@@ -22,33 +20,21 @@ $(document).ready(function() {
 
 	$(document).on('click', '.delete', hideMovieDetail);
 
-	// $('.delete').on('click', hideMovieDetail);
-
 	$('#loadMore').on('click', function() {
-		console.log(resultsPage);
 		loadMoreResults();
-		console.log(resultsPage);
 	});
 
 	// API Call to TMDB for search query
-	async function getSearchResults() {
-		searchResults = [];
-		resultsPage = 1;
+	async function sendAPIRequest() {
 		searchTerm = $('#searchTerm').val();
 		searchQuery = searchTerm.replace(' ', '+');
 
-		console.log(searchTerm);
-
-		$('#searchResults').empty();
-
 		try {
 			let apiURL = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${searchQuery}&page=${resultsPage}`;
 
-			console.log(apiURL);
-
 			let response = await $.ajax(apiURL);
-			console.log(response);
 			response.results.map(result => searchResults.push(result));
+			$('#loadMore').show();
 			resultsPage++;
 
 			if (resultsPage > response.total_pages) {
@@ -61,44 +47,71 @@ $(document).ready(function() {
 		}
 	}
 
+	// Get movie list based on search query
+	function getSearchResults() {
+		$('#searchResults').empty();
+		resultsPage = 1;
+		sendAPIRequest();
+	}
+
+	// Send an additional API request for pagination
 	async function loadMoreResults() {
-		let searchQuery = searchTerm.replace(' ', '+');
-
-		try {
-			let apiURL = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${searchQuery}&page=${resultsPage}`;
-
-			console.log(apiURL);
-
-			let response = await $.ajax(apiURL);
-			console.log(response);
-
-			displaySearchResults(response.results);
-
-			response.results.map(result => {
-				searchResults.push(result);
-			});
-			resultsPage++;
-
-			if (resultsPage > response.total_pages) {
-				$('#loadMore').remove();
-			}
-		} catch (err) {
-			console.log(err);
-		}
+		sendAPIRequest();
 	}
 
+	// Update UI for search results
+	function displaySearchResults(results) {
+		results.map(result => {
+			$('#searchResults').append(
+				`
+        <!-- Movie Entry-->
+        <div class="column is-one-quarter" id="searchResult">
+          <div class="card">
+            <div class="card-image">
+              <figure class="image is-2by3">
+                <img
+                  src=${`https://image.tmdb.org/t/p/w500/${result.poster_path}`}
+                  alt="Placeholder image"
+                />
+              </figure>
+            </div>
+            <div class="card-content">
+              <div class="content issmall">
+                <h3 class="title is-5">${result.title}</h3>
+                <h4 class="subtitle is-6">${moment(result.release_date).format(
+									'MMMM D, YYYY'
+								)}</h4>
+                <h4 class="subtitle is-6">Average Rating: ${
+									result.vote_average
+								}</h4>
+                <p class="is-size-6">${result.overview.slice(0, 130)}...</p>
+              </div>
+            </div>
+            <footer class="card-footer">
+              <a class="card-footer-item" id="learnMore" data-id="${
+								result.id
+							}">Learn More</a>
+            </footer>
+          </div>
+        </div>
+        `
+			);
+		});
+	}
+
+	// Get more details about selected movie based on ID
 	async function getMovieDetail(id) {
 		try {
 			let movieDetailURL = `https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=en-US`;
 
 			let movieDetails = await $.ajax(movieDetailURL);
-			console.log(movieDetails);
 			showMovieDetail(movieDetails);
 		} catch (err) {
 			console.log(err);
 		}
 	}
 
+	// Trigger modal component and append content to modal
 	function showMovieDetail(movieDetails) {
 		$('.modal').addClass('is-active');
 		$('.modal').append(
@@ -143,49 +156,9 @@ $(document).ready(function() {
 		);
 	}
 
+	// Close modal content
 	function hideMovieDetail() {
 		$('.modal').removeClass('is-active');
 		$('.modal').empty();
-	}
-
-	// Update UI for search results
-	function displaySearchResults(results) {
-		results.map(result => {
-			$('#searchResults').append(
-				`
-        <!-- Movie Entry-->
-        <div class="column is-one-quarter" id="searchResult">
-          <div class="card">
-            <div class="card-image">
-              <figure class="image is-2by3">
-                <img
-                  src=${`https://image.tmdb.org/t/p/w500/${result.poster_path}`}
-                  alt="Placeholder image"
-                />
-              </figure>
-            </div>
-            <div class="card-content">
-              <div class="content issmall">
-                <h3 class="title is-5">${result.title}</h3>
-                <h4 class="subtitle is-6">${moment(result.release_date).format(
-									'MMMM D, YYYY'
-								)}</h4>
-                <h4 class="subtitle is-6">${`Average Rating: ${result.vote_average}`}</h4>
-                <p class="is-size-6">${`${result.overview.slice(
-									0,
-									130
-								)}...`}</p>
-              </div>
-            </div>
-            <footer class="card-footer">
-              <a class="card-footer-item" id="learnMore" data-id="${
-								result.id
-							}">Learn More</a>
-            </footer>
-          </div>
-        </div>
-        `
-			);
-		});
 	}
 });

@@ -2,3 +2,7 @@
 .modal-content {
 	width: 725px;
 }
+
+#loadMore {
+	display: none;
+}
