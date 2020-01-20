@@ -17,10 +17,12 @@ $(document).ready(function() {
 
 	$(document).on('click', 'a#learnMore', function(e) {
 		let id = e.target.attributes['data-id'].value;
-		showMovieDetail(id);
+		getMovieDetail(id);
 	});
 
-	$('.modal-close').on('click', hideMovieDetail);
+	$(document).on('click', '.delete', hideMovieDetail);
+
+	// $('.delete').on('click', hideMovieDetail);
 
 	$('#loadMore').on('click', function() {
 		console.log(resultsPage);
@@ -85,14 +87,65 @@ $(document).ready(function() {
 		}
 	}
 
-	function showMovieDetail(id) {
+	async function getMovieDetail(id) {
+		try {
+			let movieDetailURL = `https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=en-US`;
+
+			let movieDetails = await $.ajax(movieDetailURL);
+			console.log(movieDetails);
+			showMovieDetail(movieDetails);
+		} catch (err) {
+			console.log(err);
+		}
+	}
+
+	function showMovieDetail(movieDetails) {
 		$('.modal').addClass('is-active');
-		$('.modal-content').append(`<h1>${id}</h1>`);
+		$('.modal').append(
+			`
+			<div class="modal-background"></div>
+			<div class="modal-card">
+				<header class="modal-card-head">
+					<p class="modal-card-title">${movieDetails.original_title}</p>
+					<button class="delete" aria-label="close"></button>
+				</header>
+				<section class="modal-card-body">
+					<div class="content">
+						<div class="columns">
+							<div class="column is-half">
+								<div class="image is-2by3">
+									<img
+									src=https://image.tmdb.org/t/p/w500/${movieDetails.poster_path}
+									/>
+								</div>
+							</div>
+							<div class="column">
+								<div class="tags are-medium">
+									<span class="tag">All</span>
+									<span class="tag">Medium</span>
+									<span class="tag">Size</span>
+								</div>
+								<div class="ratings">
+									<h4>Rating: ${movieDetails.vote_average}/10</h4>
+									<progress class="progress is-primary" value="${movieDetails.vote_average}" max="10">15%</progress>
+								</div>
+								<div class="overview">
+									<h4>Overview</h4>
+									<p>${movieDetails.overview}</p>
+								</div>
+								
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
+			`
+		);
 	}
 
 	function hideMovieDetail() {
 		$('.modal').removeClass('is-active');
-		$('.modal-content').empty();
+		$('.modal').empty();
 	}
 
 	// Update UI for search results
