@@ -68,9 +68,8 @@ $(document).ready(function() {
                   <h4 class="subtitle is-6">${moment(
 										result.release_date
 									).format('MMMM D, YYYY')}</h4>
-                  <h4 class="subtitle is-6">Average Rating: ${
-										result.vote_average
-									}</h4>
+                  <h4 class="subtitle is-6">Average Rating: ${result.vote_average *
+										10}%</h4>
                   <p class="is-size-6">${result.overview.slice(0, 130)}...</p>
                 </div>
               </div>
@@ -105,7 +104,8 @@ $(document).ready(function() {
 					? this.IMG_PLACEHOLDER
 					: `https://image.tmdb.org/t/p/w500/${movieDetails.poster_path}`;
 
-			$('.modal').addClass('is-active');
+			let genres = $('.modal').addClass('is-active');
+
 			$('.modal').append(
 				`
           <div class="modal-background"></div>
@@ -125,20 +125,18 @@ $(document).ready(function() {
                     </div>
                   </div>
                   <div class="column">
-                    <div class="tags are-medium">
-                      <span class="tag">All</span>
-                      <span class="tag">Medium</span>
-                      <span class="tag">Size</span>
+										<div class="tags are-medium">
                     </div>
                     <div class="ratings">
-                      <h4>Rating: ${movieDetails.vote_average}/10</h4>
-                      <progress class="progress is-primary" value="${movieDetails.vote_average}" max="10">15%</progress>
+                      <h4>Rating: ${movieDetails.vote_average * 10}%</h4>
+                      <progress class="progress is-primary" value="${
+												movieDetails.vote_average
+											}" max="10">15%</progress>
                     </div>
                     <div class="overview">
                       <h4>Overview</h4>
                       <p>${movieDetails.overview}</p>
                     </div>
-                    
                   </div>
                 </div>
               </div>
@@ -146,6 +144,10 @@ $(document).ready(function() {
           </div>
         `
 			);
+
+			movieDetails.genres.map(genre => {
+				$('.tags').append(`<span class="tag is-danger">${genre.name}</span>`);
+			});
 		},
 
 		// Close modal content
@@ -155,21 +157,23 @@ $(document).ready(function() {
 		}
 	};
 
-	$('#searchBtn').on('click', movintApp.getSearchResults);
-	$('#searchTerm').on('keyup', function(e) {
-		if (e.keyCode === 13) {
-			movintApp.getSearchResults();
-		}
-	});
+	$(() => {
+		$('#searchBtn').on('click', movintApp.getSearchResults);
+		$('#searchTerm').on('keyup', function(e) {
+			if (e.keyCode === 13) {
+				movintApp.getSearchResults();
+			}
+		});
 
-	$(document).on('click', 'a#learnMore', function(e) {
-		let id = e.target.attributes['data-id'].value;
-		movintApp.getMovieDetail(id);
-	});
+		$(document).on('click', 'a#learnMore', function(e) {
+			let id = e.target.attributes['data-id'].value;
+			movintApp.getMovieDetail(id);
+		});
 
-	$(document).on('click', '.delete', movintApp.hideMovieDetail);
+		$(document).on('click', '.delete', movintApp.hideMovieDetail);
 
-	$('#loadMore').on('click', function() {
-		movintApp.loadMoreResults();
+		$('#loadMore').on('click', function() {
+			movintApp.loadMoreResults();
+		});
 	});
 });

@@ -6,3 +6,7 @@
 #loadMore {
 	display: none;
 }
+
+.ratings {
+	padding-bottom: inherit;
+}
